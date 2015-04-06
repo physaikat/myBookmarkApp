@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #C1F09C;
+        }
+
+        .page-header {
+            border: 2px solid #00491b;
+            padding: 20px;
+            background: #99e632;
+            width: 80%;
+            border-radius: 25px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .foldertable {
+            border: 2px solid #00491b;
+            margin: 10px 80px 10px 250px;
+            border-collapse: separate;
+            border-left: 0;
+            border-radius: 4px;
+            border-spacing: 0px;
+            width: 70%;
+        }
+
+        .addbookmark {
+            border: 2px solid #99CCFF;
+            padding: 5px;
+            background: #99CCFF;
+            margin: 10px 80px 10px 250px;
+            border-collapse: separate;
+            border-left: 0;
+            border-radius: 4px;
+            border-spacing: 0px;
+            width: 70%;
+        }
+
+        .bookmarktable {
+            border: 2px solid #99CCFF;
+            background: #99CCFF;
+            margin: 10px 80px 10px 250px;
+            border-collapse: separate;
+            border-left: 0;
+            border-radius: 4px;
+            border-spacing: 0px;
+            width: 70%;
+        }
+
+        button {
+            display: inline-block;
+            margin: 10px 80px 10px 10px;
+            padding: 5px 15px;
+            font-size: 10px;
+            font-family: "Bitter", serif;
+            line-height: 1.8;
+            appearance: none;
+            box-shadow: none;
+            border-radius: 15px;
+        }
+
+        button:focus {
+            outline: none
+        }
+    </style>
+<head lang="en">
+
+    <meta charset="utf-8">
+    <title>Bookmark</title>
+
+    <!-- TODO: Include Angular from Bower components -->
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.js"></script>
+</head>
+<body>
+<div class="page-header">
+    <h1 style="text-align:center">Bookmark Organiser</h1>
+</div>
+<div ng-app="myApp" ng-controller="customersCtrl">
+    <table class="addtable">
+        <tr>
+            <td>
+                <button ng-click="addfolder()">Add Folder</button>
+            </td>
+            <td ng-show="isaddfolder">
+                <form>
+                    Folder Name <input type="text" name="newfoldername" ng-model="newfoldername">
+                </form>
+            </td>
+            <td ng-show="isaddfolder">
+                <button ng-disabled="savebutton" ng-click="addnewfolder(newfoldername)">Save</button>
+            </td>
+        </tr>
+
+    </table>
+    <table>
+        <tr>
+            <td ng-show="bookmark">
+                <button ng-click="deleteFolder(foldername)">Delete Folder</button>
+            </td>
+            <td ng-show="bookmark">
+                <button ng-click="addbookmark()">Add Bookmark</button>
+            </td>
+        </tr>
+    </table>
+    <table class="foldertable">
+        <tr>
+            <th>Folder list</th>
+        </tr>
+        <tr ng-repeat="x in names">
+            <td></td>
+            <td><input type="checkbox" ng-model="x.isChecked" ng-change="viewbookmarks(x.foldername)"/>{{ x.foldername}}
+            </td>
+        </tr>
+
+    </table>
+    <table class="addbookmark">
+        <tr>
+            <form>
+                <td ng-show="isaddbookmark">
+                    Bookmark Name <input type="text" name="newbookmarkname1" ng-model="newbookmarkname1">
+                    URL <input type="text" name="newbookmarkname2" ng-model="newbookmarkname2">
+
+                </td>
+
+                <td ng-show="isaddbookmark">
+                    <button ng-click="addnewbookmark(foldername,newbookmarkname2,newbookmarkname1)">Save</button>
+                </td>
+            </form>
+        </tr>
+
+    </table>
+
+    <table>
+        <td ng-show="isbookmarkChecked">
+            <button ng-click="deleteBookmark(foldername,bookmark_name)">Delete Bookmark</button>
+        </td>
+        <form ng-submit="changefolder(foldername,bookmark_name,bookmark_url,field)">
+            <td ng-show="isbookmarkChecked">Change bookmark Folder to: <select name="field" ng-model="field">
+                <option ng-repeat="folder in names" value={{folder.foldername}}>{{folder.foldername}}</option>
+            </select></td>
+            <td ng-show="isbookmarkChecked">
+                <button type="submit">select</button>
+            </td>
+        </form>
+    </table>
+    <table class="bookmarktable">
+        <tr ng-repeat="y in bookmarks">
+            <td><input type="checkbox" ng-model="y.isChecked" ng-change="nameofbookmark(y.name, y.url)">{{ y.name }}
+            </td>
+            <td>{{ y.url }}</td>
+
+        </tr>
+    </table>
+    <script>
+        var app = angular.module('myApp', []);
+        app.controller('customersCtrl', function ($scope, $http) {
+            $http.get("http://54.209.41.215:8080/viewFolder")
+                    .success(function (response) {
+                        $scope.names = response.Data;
+                        $scope.names.forEach(function (item1) {
+                            item1.isChecked = false;
+                        })
+                    });
+            $scope.toggle = function (foldername) {
+                $scope.ishidden = !$scope.ishidden;
+                $scope.foldername = foldername;
+
+            };
+            $scope.bookmarks = '';
+            $scope.bookmark = false;
+
+
+
+            $scope.viewbookmarks = function (whichfolder) {
+                console.log("foldername " + JSON.stringify($scope.names))
+                /*$scope.names.forEach(function (item2) {
+                    console.log("foldername " + item2.foldername + " and " + $scope.foldername)
+                    if (item2.foldername == $scope.foldername) {
+                        item2.isChecked = true;
+                    } else {
+                        item2.isChecked = false;
+                    }
+                })*/
+                $scope.bookmark = true;
+                $scope.foldername = whichfolder;
+                $scope.names.forEach(function(FolderName){
+                    console.log("in for each function " + FolderName.foldername + " and the " + $scope.foldername)
+                    if(FolderName.foldername==$scope.foldername){
+                        console.log("check for foldername " + FolderName + " and " + $scope.foldername)
+                        FolderName.isChecked = true;
+                    }else{
+                        FolderName.isChecked = false;
+                    }
+                })
+                $http.get("http://54.209.41.215:8080/viewFolder?foldername=" + whichfolder)
+                        .success(function (response) {
+                            $scope.bookmarks = response.Data[0].bookmarkDetails;
+                            $scope.bookmarks.forEach(function(item){
+                                item.isChecked = false;
+                                console.log(JSON.stringify(item))
+                            })
+
+                        });
+
+
+            };
+
+
+
+            $scope.isChecked = false;
+
+            $scope.nameofbookmark = function (name, url) {
+                $scope.bookmark_name = name;
+                $scope.bookmark_url = url;
+                $scope.isbookmarkChecked = true;
+                $scope.bookmarks.forEach(function(bookmarkname){
+                    if(bookmarkname.name==name){
+                        bookmarkname.isChecked = true;
+                    }else{
+                        bookmarkname.isChecked = false;
+                    }
+                })
+
+            }
+            $scope.deleteBookmark = function (foldername, bookmarkname) {
+                console.log("foldername " + foldername)
+                if (bookmarkname != null) {
+                    var dataObj = {
+                        IsRemove: true,
+                        foldername: foldername,
+                        bookmarkDetails: {name: bookmarkname}
+                    };
+                    $http.put("http://54.209.41.215:8080/adddeleteBookmark", dataObj)
+                            .success(function (data, status, headers, config) {
+                                //location.reload();
+                                //alert("Status " + status);
+                                $scope.viewbookmarks($scope.foldername);
+                            });
+
+                }
+                else alert('Please select a bookmark');
+
+            }
+            $scope.changefolder = function (foldername, bookmark, bookmark_url, destFolder) {
+                console.log(foldername + " " + bookmark + " " + destFolder)
+                var dataObj = {
+                    IsRemove: true,
+                    foldername: foldername,
+                    bookmarkDetails: {'name': bookmark}
+                };
+                $http.put("http://54.209.41.215:8080/adddeleteBookmark", dataObj)
+                        .success(function (data, status, headers, config) {
+                            var newdataObj = {
+                                IsRemove: false,
+                                foldername: destFolder,
+                                bookmarkDetails: {'name': bookmark, 'url': bookmark_url}
+                            };
+                            $http.put("http://54.209.41.215:8080/adddeleteBookmark", newdataObj)
+                                    .success(function (data, status, headers, config) {
+                                        $scope.viewbookmarks($scope.foldername);
+                                        //location.reload();
+                                    });
+                        });
+
+            }
+            $scope.deleteFolder = function (foldername) {
+                $http.delete("http://54.209.41.215:8080/deleteFolder?foldername=" + $scope.foldername)
+                        .success(function (result) {
+                            location.reload();
+                            alert("Status " + result);
+                        });
+            }
+            $scope.isaddfolder = false;
+            $scope.savebutton = false;
+            $scope.addfolder = function () {
+                $scope.isaddfolder = !$scope.isaddfolder;
+            }
+            $scope.addnewfolder = function (newfoldername) {
+
+                if (newfoldername != null) {
+                    $scope.savebutton = true;
+                    var dataObj = {
+                        "DBName": "BOOKMARK_DB",
+                        "collectionName": "Bookmarks",
+                        "DBVersion": "2.6.1",
+                        "data": {
+                            "foldername": newfoldername,
+                            "bookmarkDetails": []
+                        }
+                    }
+                    $http.post("http://54.209.41.215:8080/newfolder", dataObj)
+                            .success(function (data, status, headers, config) {
+                                location.reload();
+                                alert("Status " + status);
+                            });
+                }
+                else {
+                    alert("Please enter a valid name")
+                }
+
+
+            }
+            $scope.isaddbookmark = false;
+            $scope.addbookmark = function () {
+                $scope.isaddbookmark = !$scope.isaddbookmark;
+            }
+            $scope.urlname = 'enter the url';
+            $scope.bookmarksave = false;
+            $scope.addnewbookmark = function (foldername, newurl, newbookmarkname) {
+
+                if (newbookmarkname != null) {
+                    var dataObj = {
+                        IsRemove: false,
+                        foldername: foldername,
+                        bookmarkDetails: {'name': newbookmarkname, 'url': newurl}
+                    };
+                    $http.put("http://54.209.41.215:8080/adddeleteBookmark", dataObj)
+                            .success(function (data, status, headers, config) {
+
+                                //alert("Success!");
+                                $scope.viewbookmarks($scope.foldername);
+
+                                //alert("Success!");
+                                //location.reload();
+
+                            });
+                }
+                else {
+                    alert("Please enter a valid name and url")
+                }
+
+
+            };
+            $scope.selectbookmark = function (destfoldername) {
+                if (destfoldername != null) {
+                    $scope.destfolder = destfoldername;
+                    alert(destfoldername);
+                }
+                else alert('Select a proper folder')
+            }
+        });
+    </script>
+
+</div>
+
+</body>
+</html>
